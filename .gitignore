@@ -1,0 +1,5 @@
+#.gitignore
+# I need to create a simple script to replicate this with a simple template. {{TO-DO: make script that automatically creates a template .gitignore}}
+.DS_Store
+.ipynb_checkpoints
+

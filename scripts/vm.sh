@@ -7,17 +7,18 @@
 PROJECT="<PROJECT_ID_GOES_HERE>"
 
 function usage() {
-    echo "Usage: $0 [-h] [-l] [-1 | -0 | -c | -j] [-p port] <instance>"
+    echo "Usage: $0 [-h] [-l] [-p port] [-1 | -0 | -c | -j | -d] <instance>"
     echo "This is a simple helper script to start and stop gcloud instances. "
     echo "Options: "
     echo "          -h                           Show this help message "
     echo "          -l                           List instances"
+    echo "          -d <instance>                Describe instance"
     echo "          -1                           Start instance"
     echo "          -0                           Stop instance"
     echo "          -c                           Connect to instance"
     echo "          -j                           Connect to instance with port forwarding (jupyter server)"
-    echo "          -p port                      Specify custom port (default: 8888)"
-    echo "  <instance>                           Name of Instance"
+    echo "          -p <port>                    Specify custom port (default: 8888)"
+    echo "          <instance>                   Name of Instance"
 }
 # Check for no arguments
 if [[ $# -eq 0 ]]; then

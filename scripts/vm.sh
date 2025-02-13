@@ -4,7 +4,7 @@
 # 2025-Feb-13
 
 # Until I add the flag to specify project_id, hardcode it here.
-PROJECT="mgh-lemieux-lab-gcp-1701882017"
+PROJECT="<PROJECT_ID_GOES_HERE>"
 
 function usage() {
     echo "Usage: $0 [-h] [-l] [-1 | -0 | -c | -j] [-p port] <instance>"
@@ -29,7 +29,7 @@ fi
 # Initialize default port
 PORT=8888
 
-# Check for port argument 
+# Check for port argument
 if [[ "$1" == "-p" ]]; then
     if [[ $# -lt 2 ]]; then
         echo "Error: -p requires a port number" >&2
@@ -66,24 +66,24 @@ if [[ $# -eq 2 ]]; then
         echo "ERROR: Instance name should be the second argument, not an option" >&2
         exit 2
     fi
-    
+
 #    ZONE="--zone=us-central1-a"
-# !!TODO: Rewrite argparsing using getopts for positional flexibility.    
+# !!TODO: Rewrite argparsing using getopts for positional flexibility.
     case $1 in
         "-d")
             INSTANCE=$2
             echo "Describing gcp instance: $INSTANCE"
-            exec gcloud compute instances describe "$INSTANCE" 
+            exec gcloud compute instances describe "$INSTANCE"
             ;;
         "-1")
             INSTANCE=$2
             echo "Starting gcp instance: $INSTANCE"
-            exec gcloud compute instances start --project "$PROJECT" "$INSTANCE" 
+            exec gcloud compute instances start --project "$PROJECT" "$INSTANCE"
             ;;
         "-0")
             INSTANCE=$2
             echo "Stopping gcp instance: $INSTANCE"
-            exec gcloud compute instances stop --project "$PROJECT" "$INSTANCE" 
+            exec gcloud compute instances stop --project "$PROJECT" "$INSTANCE"
             ;;
         "-c")
             INSTANCE=$2

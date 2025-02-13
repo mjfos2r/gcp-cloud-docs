@@ -4,6 +4,8 @@ So the provided script, vm.sh, is a handy helper script I wrote to make using GC
 
 Once it's downloaded, save the file to a location on your path. alternatively, create a directory for useful scripts and add that to your path. I will give the commands for the latter:
 
+*BEFORE DOING THE FOLLOWING, AFTER DOWNLOADING THE SCRIPT: `vm.sh`, BE SURE TO CHANGE THE VALUE ON LINE #7 TO REFLECT YOUR DESIRED PROJECT. I WILL ADAPT IT TO ACCEPT PROJECTS SOMETIME SOON BUT UNTIL THEN IT NEEDS TO BE HARD CODED!!!*
+
 1.create a scripts folder and add it to your path!
 
 ```bash

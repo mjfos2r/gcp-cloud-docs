@@ -49,7 +49,7 @@ if [[ $# -eq 1 ]]; then
             exit 0
             ;;
         "-l")
-            gcloud compute instances list
+            gcloud compute instances list --project "$PROJECT"
             exit 0
             ;;
         *)

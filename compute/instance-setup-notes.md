@@ -7,7 +7,7 @@ sudo apt upgrade
 sudo apt install gh git tmux htop dos2unix
 gh auth login
 gh auth setup-git
-git config --global user.email "50351736+mjfos2r@users.noreply.github.com"
+git config --global user.email "<email here>"
 git config --global user.name "Michael J. Foster"
 git config --global --type bool push.autoSetupRemote true
 

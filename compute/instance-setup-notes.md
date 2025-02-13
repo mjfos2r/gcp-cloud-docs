@@ -47,6 +47,6 @@ mamba update -f assembly_env.yml
 conda activate
 ```
 
-# This was prior to abandoning snakemake and converting to docker containers for everything
+## !! This was prior to (semi)-abandoning snakemake and converting to docker containers for everything
 
 This requires considerable revision!

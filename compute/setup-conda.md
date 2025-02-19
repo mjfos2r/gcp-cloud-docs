@@ -93,10 +93,12 @@ sudo sh /tmp/Miniconda3-latest-Linux-x86_64.sh -b -p /usr/local/miniconda3
 4.Now we need to wrangle the permissions!
 We need to set the owner of `/usr/local/miniconda3` to `root:conda-users` and then give everyone in the group write permissions as well as save permissions.
 
+use the setgid bit to ensure all new files and subdirectories keep the same group ownership.
+
 ```bash
-sudo chown -R root:conda-users /usr/local/miniconda3
+sudo chown -R :conda-users /usr/local/miniconda3
 sudo chmod -R g+w /usr/local/miniconda3
-sudo chmod g+s /usr/local/miniconda3/envs
+sudo chmod -R g+s /usr/local/miniconda3/envs
 ```
 
 5.Now we just have to configure conda!

@@ -75,10 +75,10 @@ The vm.sh script also won't be able to find the jupyter env? maybe? we'll see.
     ```bash
     sudo mkdir -p /usr/local/share/jupyter/kernels
     # and change perms to be accessible to everyone in the conda-users group
-    sudo chown -R root:conda-users /usr/local/share/jupyter
-    # and add all the perms
+    sudo chown -R :conda-users /usr/local/share/jupyter
+    # and add all the perms (USING SETGID TO ENSURE ALL NEW DIRS AND FILES ARE WITH THE SAME GLOBAL GROUP PERMS!)
     sudo chmod -R g+w /usr/local/share/jupyter
-    sudo chmod g+s /usr/local/share/jupyter
+    sudo chmod -R g+s /usr/local/share/jupyter
     ```
 
 7. groovy, now let's configure our config. open it in a text editor and update the following settings.

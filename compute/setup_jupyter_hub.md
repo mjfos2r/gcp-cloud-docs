@@ -82,10 +82,8 @@ The vm.sh script also won't be able to find the jupyter env? maybe? we'll see.
     ```
 
 7. groovy, now let's configure our config. open it in a text editor and update the following settings.
-
-    We need to set the IP, port, and also make sure the memlimit is unrestricted.
+    We need to set the IP and port!
     We also are going to change our port to the default used by `vm.sh` which is `8888`.
-
     We're also going to need to add approved users.
     Find the list of users with the following commands:
 
@@ -120,7 +118,13 @@ The vm.sh script also won't be able to find the jupyter env? maybe? we'll see.
     c.Spawner.mem_limit = None
     ```
 
-8. Okay now we can restart systemd and add the service.
+8. Before we can use jupyterhub, we need to create a password for ourselves. (Unless you've already done this!)
+
+    ```bash
+    sudo passwd <username>
+    ```
+
+9. Okay now we can restart systemd and add the service.
 
     ```bash
     sudo systemctl daemon-reload
@@ -128,12 +132,6 @@ The vm.sh script also won't be able to find the jupyter env? maybe? we'll see.
     sudo systemctl start jupyterhub
     # check status
     sudo systemctl status jupyterhub
-    ```
-
-9. Before we can use jupyterhub, we need to create a password for ourselves. (Unless you've already done this!)
-
-    ```bash
-    sudo passwd <username>
     ```
 
 10. Now this should be functional! Let's test it out!

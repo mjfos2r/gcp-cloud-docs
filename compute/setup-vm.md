@@ -37,6 +37,7 @@ vm -c ram-optimized
 ...
 # on remote shell (in same terminal)
 whoami
+# add the given user to the 'conda-users` usergroup.
 sudo usermod -a -G conda-users <username>
 exit
 ```
@@ -62,7 +63,7 @@ conda install -n base -c conda-forge nb_conda_kernels
 
 And this should allow jupyterhub to identify ipynb kernels within each environment.
 
-*Make sure that ipykernel is installed to EACH environment you wish to use with jupyterhub.*
+*Make sure that ipykernel is installed to EACH environment you wish to use with jupyterhub. Instructions below!*
 
 6.Cool! Now that you're set up to use conda. You can use jupyterlab functionality with the helper script.
 
@@ -72,16 +73,20 @@ This is essential to being able to connect using jupyter easily.
 # on local shell
 vm -j ram-optimized
 ```
-Take the url that appears in the terminal output and use jupyter as usual!
+Take the url that appears in the terminal output and use jupyter as usual! Should be something like `localhost:8888` and then login using your username and password that you've already set.
+The terminal will print out the server terminal log for jupyterhub.
 
-7. Okay, so now we have to activate our environment and start the ipykernel.\
+If you haven't set a password, then do the following command.
+`sudo passwd <your_username>`
+
+7. Okay, so now we have to activate our environment and start the ipykernel.
 
 This is an example of creating a new env and setting up the kernel.
 
 ```bash
 conda create -n my_env python=3.10 -y
 conda activate my_env
-conda install -c conda-forge ipykernel
+conda install -y -c conda-forge ipykernel
 python -m ipykernel install --user --name=my_env --display-name "Python (my_env)"
 ```
 
@@ -92,4 +97,4 @@ sudo systemctl restart jupyterhub
 ```
 
 ***
-#>>{MJF - 2025-Feb-13}<<#
+#>>{MJF - 2025-Feb-19}<<#

@@ -3,12 +3,17 @@
 # github.com/mjfos2r
 # 2025-Feb-13
 
-# Until I add the flag to specify project_id, hardcode it here.
-PROJECT="<PROJECT_ID_GOES_HERE>"
+# if anything breaks crash out.
+set -euo pipefail
+
+# Instead of hardcoding the project_id, let's just pull it from the environment 
+# (so we can specify alternative projects or grab the default from gcloud)
+PROJECT="${GOOGLE_CLOUD_PROJECT:-"$(gcloud config get-value project)"}"
+echo "Current GCP Project: ${PROJECT}"
 
 function usage() {
-    echo "Usage: $0 [-h] [-l] [-p port] [-1 | -0 | -c | -j | -d] <instance>"
-    echo "This is a simple helper script to start and stop gcloud instances. "
+    echo "Usage: $0 [-h] [-l] [-p port] [-1 | -0 | -c | -j | -d] <instance>   "
+    echo "This is a simple helper script to start and stop gcloud instances.  "
     echo "Options: "
     echo "          -h                           Show this help message "
     echo "          -l                           List instances"
@@ -19,6 +24,11 @@ function usage() {
     echo "          -j                           Connect to instance with port forwarding (jupyter server)"
     echo "          -p <port>                    Specify custom port (default: 8888)"
     echo "          <instance>                   Name of Instance"
+    echo " "
+    echo "!! This script will pull the default project from \$(gcloud config get-value project) !!"
+    echo "If you have multiple projects, set the 'GOOGLE_CLOUD_PROJECT' variable and try again"
+    echo " "
+    echo "Command: export GOOGLE_CLOUD_PROJECT='my-project-id'"
 }
 # Check for no arguments
 if [[ $# -eq 0 ]]; then
@@ -28,6 +38,7 @@ if [[ $# -eq 0 ]]; then
 fi
 
 # Initialize default port
+# {{TODO: This needs to be expanded to allow for specification of system and local ports}}
 PORT=8888
 
 # Check for port argument
@@ -94,17 +105,40 @@ if [[ $# -eq 2 ]]; then
         "-j")
             INSTANCE=$2
             echo "Connecting to gcp instance: $INSTANCE with port forwarding!"
-            echo "Initializing jupyter-lab server!"
+            
+            # check to see if jupyterhub is installed and available on our instance
             REMOTE_CMD='
-              echo "Current PATH: $PATH"
-              echo "Sourcing conda..."
-              source $(find ~ -type f -wholename "*/miniconda3/etc/profile.d/conda.sh")
-              echo "Activating conda base..."
-              conda activate base
-              echo "Conda environment: $CONDA_PREFIX"
-              echo "Which jupyter-lab: $(which jupyter-lab)"
-              echo "Starting jupyter-lab..."
-              jupyter-lab --no-browser --port='$PORT
+            if systemctl is-active jupyterhub >/dev/null 2>&1; then
+                echo "JupyterHub is running - connect to http://localhost:'$PORT'"
+                echo "Terminal output for jupyterhub service:"
+                trap "echo -e \"\nDisconnecting...\"; exit 0" INT
+                journalctl -u jupyterhub -f
+            else
+                echo "Initializing jupyter-lab server!"
+                echo "Current PATH: $PATH"
+                # Look for CONDA_EXE first.
+                if [ -n "${CONDA_EXE:-}" ]; then
+                    eval "$(${CONDA_EXE} shell.bash hook)"
+                else
+                    # if it aint set then hunt for conda.sh
+                    echo "CONDA_EXE not set, looking for conda.sh"
+                    CONDAINIT=$(find $HOME -type f -wholename "*/etc/profile.d/conda.sh" 2>/dev/null | head -n1)
+                    if [ -f "$CONDAINIT" ]; then
+                        echo "Found $CONDAINIT"
+                        source "$CONDAINIT"
+                    else
+                        echo "ERROR: Could not locate conda on the remote VM!"
+                        exit 1
+                    fi
+                fi
+                echo "Activating conda base..."
+                conda activate base
+                echo "Conda environment: $CONDA_PREFIX"
+                echo "Which jupyter-lab: $(which jupyter-lab)"
+                echo "Starting jupyter-lab..."
+                jupyter-lab --no-browser --port='$PORT'
+            fi'
+
             exec gcloud compute ssh --project "$PROJECT" "$INSTANCE" --internal-ip \
                 -- -L ${PORT}:localhost:${PORT} \
                 "/bin/bash -l -c '$REMOTE_CMD'"

@@ -140,7 +140,7 @@ case $ACTION in
         ;;
     "connect")
         echo "Connecting to gcp instance: $INSTANCE"
-        gcloud compute ssh --project "$PROJECT" "$INSTANCE" --internal-ip
+        gcloud compute ssh --ssh-key-file ~/.ssh/mjf_id_2d25519-sk --project "$PROJECT" "$INSTANCE" --internal-ip
         ;;
     "jupyter")
         echo "Connecting to gcp instance: $INSTANCE with port forwarding!"
@@ -193,7 +193,7 @@ case $ACTION in
             jupyter-lab --no-browser --port='$REMOTE_PORT'
         fi'
 
-        gcloud compute ssh --project "$PROJECT" "$INSTANCE" --internal-ip \
+        gcloud compute ssh --ssh-key-file ~/.ssh/mjf_id_2d25519-sk --project "$PROJECT" "$INSTANCE" --internal-ip \
             -- -L ${LOCAL_PORT}:localhost:${REMOTE_PORT} \
             "/bin/bash -l -c '$REMOTE_CMD'"
         ;;

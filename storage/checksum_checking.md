@@ -141,3 +141,11 @@ and on the remote machine:
 ```bash
 xxhsum -c files.tar.gz.xxh64
 ```
+
+## what about in-flight?
+
+I know that when uploading files to gcp, you can specify `--content-md5` which as explained in [the documentation](https://cloud.google.com/sdk/gcloud/reference/storage/cp#--content-md5) is used by the 'cloud provider' for validation.
+
+This might be very very useful.
+
+Will try it the next time I do an upload.

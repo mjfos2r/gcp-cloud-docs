@@ -18,7 +18,7 @@ WORKSPACES=(
 )
 BUCKET_PATHS=(
   "gs://fc-secure-83a5cea5-a13e-43ab-95d3-d39955cb7e61/nanopore/promethion_runs"
-  "gs://fc-9fb3817f-94b5-4992-a2e2-38856fac5b30/ONT_data/promethion_runs/"
+  "gs://fc-9fb3817f-94b5-4992-a2e2-38856fac5b30/ONT_data/promethion_runs"
 )
 # -----------------------------------------------------------------------------#
 
@@ -204,35 +204,6 @@ upload_to_bucket() {
 }
 
 
-generate_input_json() {
-  local run_id="$1"
-  local dest_bucket="$2"
-  local raw_digest="$3"
-  local raw_MD5="$4"
-  local run_tarball="$5"
-  local run_tarball_MD5="$6"
-  local samplesheet="$7"
-  local summary="$8"
-  local summary_MD5="$9"
-  local json_out="${run_tarball%.tar.gz}_inputs.json"
-
-  cat <<EOF | tee "$json_out"
-{
-  "promethION_runs_id": "$run_id",
-  "RawChecksum": "${dest_bucket}/$(basename "$raw_MD5")",
-  "RawDigest": "${dest_bucket}/$(basename "$raw_digest")",
-  "RunChecksum": "${dest_bucket}/$(basename "$run_tarball_MD5")",
-  "RunTarball": "${dest_bucket}/$(basename "$run_tarball")",
-  "Samplesheet": "${dest_bucket%/*}/samplesheets/$(basename "$samplesheet")",
-  "SequencingSummary": "${dest_bucket}/$(basename "$summary")",
-  "SummaryChecksum": "${dest_bucket}/$(basename "$summary_MD5")"
-}
-EOF
-
-  echo -e "${GREEN}Wrote Demux input json to $json_out${NC}"
-}
-
-
 generate_input_tsv() {
   local run_id="$1"
   local dest_bucket="$2"
@@ -248,7 +219,7 @@ generate_input_tsv() {
   echo ""
   echo "Input TSV for DataTable:"
   cat <<EOF | tee "$tsv_out"
-entity:promethION_runs_id	RawChecksum	RawDigest	RunChecksum	RunTarball	Samplesheet	summary_files	summary_checksums
+entity:promethION_runs_id	RawChecksum	RawDigest	RunChecksum	RunTarball	samplesheet	summary_files	summary_checksums
 "$run_id"	"${dest_bucket}/$(basename "$raw_MD5")"	"${dest_bucket}/$(basename "$raw_digest")"	"${dest_bucket}/$(basename "$run_tarball_MD5")"	"${dest_bucket}/$(basename "$run_tarball")"	"${dest_bucket%/*}/samplesheets/$(basename "$samplesheet")"	["${dest_bucket}/$(basename "$summary")"]	["${dest_bucket}/$(basename "$summary_MD5")"]
 EOF
   echo ""
@@ -330,8 +301,7 @@ upload_to_bucket "$DEST_BUCKET_PATH" "$SUMMARY" "$SUMMARY_MD5"
 upload_to_bucket "$DEST_BUCKET_PATH" "$RAW_MD5" "$RAW_DIGEST"
 upload_to_bucket "$DEST_BUCKET_PATH" "$TARBALL" "$TARBALL_MD5"
 
-# spit out the json (because its already made) even though DataTables only accept tsv
-generate_input_json "$RUN" "$DEST_BUCKET_PATH" "$RAW_DIGEST" "$RAW_MD5" "$TARBALL" "$TARBALL_MD5" "$SAMPLESHEET" "$SUMMARY" "$SUMMARY_MD5"
+# spit out the tsv
 generate_input_tsv "$RUN" "$DEST_BUCKET_PATH" "$RAW_DIGEST" "$RAW_MD5" "$TARBALL" "$TARBALL_MD5" "$SAMPLESHEET" "$SUMMARY" "$SUMMARY_MD5"
 
 echo -e "${GREEN}Finished! Have a wonderful day!${NC}"

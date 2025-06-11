@@ -10,7 +10,6 @@ set -euo pipefail
 shopt -s nullglob
 
 # -- CONFIGURATION ------------------------------------------------------------#
-READS_FORMAT="bam" #"fastq" #TODO: add opt to getopts that will allow for switching which reads it looks for, default to fastq.
 THREADS="${PIGZ_THREADS:-18}" # floor it to 20 with export PIGZ_THREADS=20
 WORKSPACES=(
   "mgb-Lemieux_Lab_Sequencing"
@@ -26,7 +25,7 @@ BUCKET_PATHS=(
 RED='\033[1;31m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; PURPLE='\033[1;35m'; WHITE='\033[0;37m'; NC='\033[0m'
 
 # -- Functions ----------------------------------------------------------------#
-usage() { echo "Usage: $(basename ${0}) [--resume] <run_dir>"; exit 1; }
+usage() { echo "Usage: $(basename ${0}) [--resume] [--bam] <run_dir>"; echo "use --bam to look for bam_pass, omit for fastq_pass"; exit 1; }
 
 print_divider() {
   local color="$1"
@@ -236,7 +235,7 @@ RAW_MD5=""
 RAW_DIGEST=""
 TARBALL=""
 TARBALL_MD5=""
-
+READS_FORMAT="fastq" # default to fastq unless otherwise specified.
 RESUME=false
 
 #-- main execution ------------------------------------------------------------#
@@ -244,6 +243,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --resume)
       RESUME=true
+      shift
+      ;;
+    --bam)
+      READS_FORMAT="bam"
       shift
       ;;
     -*)

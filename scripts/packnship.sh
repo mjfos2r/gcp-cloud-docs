@@ -22,7 +22,7 @@ BUCKET_PATHS=(
 # -----------------------------------------------------------------------------#
 
 # Colors for output
-RED='\033[1;31m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; PURPLE='\033[1;35m'; WHITE='\033[0;37m'; NC='\033[0m'
+RED='\033[1;31m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; BLUE='\033[1;34m'; PURPLE='\033[1;35m'; WHITE='\033[0;37m'; NC='\033[0m'
 
 # -- Functions ----------------------------------------------------------------#
 usage() { echo "Usage: $(basename ${0}) [--resume] [--bam] <run_dir>"; echo "use --bam to look for bam_pass, omit for fastq_pass"; exit 1; }
@@ -32,13 +32,23 @@ print_divider() {
   printf "${color}%*s${NC}" "$(tput cols)" | tr ' ' '-'
 }
 
+date_divider() {
+  local color="$1"
+  local datestr
+  datestr="$(date)"
+  dateblock_len=$(( ${#datestr} + 8 ))
+  cols=$(( $(tput cols)-$dateblock_len ))
+  printf "${color}%*s${NC}" "$cols" | tr ' ' '-'
+  echo -e "${color}::[${NC} ${YELLOW}${datestr}${NC} ${color}]::${NC}"
+}
+
 
 choose_bucket() {
   local var_name="$1"
   shift
   local -n workspaces_ref="$1"
   local -n paths_ref="$2"
-  print_divider "$YELLOW"
+  date_divider "$PURPLE"
   echo "Select a terra workspace to upload this run into:"
   local i=1
   for ((i = 0; i < ${#workspaces_ref[@]}; i++)); do echo -e "  $((i+1))) ${YELLOW}${workspaces_ref[$i]}${NC}\n     ${paths_ref[$i]}"; done
@@ -53,7 +63,7 @@ choose_bucket() {
   done
   local selected="${paths_ref[$((choice-1))]}" # decrement by 1 since bash indexes by zero
   printf -v "$var_name" "%s" "$selected"
-  print_divider "$YELLOW"
+  print_divider "$PURPLE"
 }
 
 
@@ -64,6 +74,7 @@ find_files() {
   local -n summary_md5="$4"
   local reads_type="$5" # bam_pass or fastq_pass
 
+  echo "Searching for files..."
   mapfile -t reads_matches < <(find "$run_dir" -type d -name "${reads_type}_pass")
   mapfile -t summary_matches < <(find "$run_dir" -type f -name "sequencing_summary_*.txt")
 
@@ -104,15 +115,10 @@ find_samplesheet() {
 
   if gsutil -q stat "$samplesheet" > /dev/null 2>&1; then
     echo -e "${GREEN}Samplesheet found in bucket!${NC}"
-    print_divider "$GREEN"
   else
-    print_divider "$YELLOW"
-    echo -e "${RED}!!!!${NC}"
     echo -e "${YELLOW}WARNING: Please upload the samplesheet to the bucket before demultiplexing!${NC}"
     echo "Expected path:     $samplesheet"
     echo "Expected filename: ${run_id}.csv"
-    echo -e "${RED}!!!!${NC}"
-    print_divider "$YELLOW"
   fi
 }
 
@@ -140,16 +146,19 @@ compress_run() {
   compressed="${PWD}/${run_id}.tar.gz"
   compressed_md5="${compressed}.md5"
   # lesgetit
+  date_divider "$PURPLE"
   echo -e "${GREEN}Starting pre-flight checks!${NC}"
   echo -e "${YELLOW}Calculating checksums for all reads in $reads_dir${NC}"
   cd "$reads_dir"
   # find all the files, sort em, then hash em with xargs
   find . -type f -print0 | sort -z | xargs -0 md5sum > "$raw_md5"
   echo -e "${GREEN}checksum of files saved to${NC} $raw_md5"
+  date_divider "$PURPLE"
   # hash digest
   echo -e "${YELLOW}creating digest${NC}"
   md5sum "$raw_md5" > "$raw_digest"
   echo -e "${GREEN}Digest saved to${NC} $raw_digest"
+  date_divider "$PURPLE"
   # make the big tarball
   echo -e "${YELLOW}Compressing files! Please stand by!${NC}"
   # move up one directory so we can compress the bam_pass dir.
@@ -159,7 +168,7 @@ compress_run() {
   echo -e "${YELLOW}Hashing tarball... please stand by${NC}"
   md5sum "$compressed" > "$compressed_md5"
   echo -e "${GREEN}Hash saved to:${NC} $compressed_md5"
-  print_divider "$WHITE"
+  date_divider "$PURPLE"
 }
 
 
@@ -173,7 +182,7 @@ upload_to_bucket() {
   dest_path="${dest_bucket}/$(basename "$file")"
   local_hash_hex=$(cat "$local_hash_file" | awk -F' ' '{print $1}')
   local_hash_b64=$(echo "$local_hash_hex" | xxd -r -p | base64)
-  print_divider "$WHITE"
+  date_divider "$BLUE"
   echo "Upload Details:"
   echo -e "${YELLOW}File:${NC}       $file"
   echo -e "${YELLOW}Dest:${NC}       $dest_path"
@@ -199,7 +208,7 @@ upload_to_bucket() {
   echo -e "${YELLOW}Uploading hash to bucket. Please stand by...${NC}"
   gcloud storage cp "$local_hash_file" "${dest_bucket}/$(basename "$local_hash_file")"
   echo -e "${GREEN}Hash upload complete!${NC}"
-  print_divider "$WHITE"
+  date_divider "$PURPLE"
 }
 
 
@@ -215,6 +224,7 @@ generate_input_tsv() {
   local summary_MD5="$9"
 
   local tsv_out="${run_tarball%.tar.gz}_inputs.tsv"
+  echo "Writing TSV DataTable"
   echo ""
   echo "Input TSV for DataTable:"
   cat <<EOF | tee "$tsv_out"
@@ -223,6 +233,7 @@ entity:promethION_runs_id	RawChecksum	RawDigest	RunChecksum	RunTarball	sampleshe
 EOF
   echo ""
   echo -e "${GREEN}Wrote Demux input TSV to ${tsv_out}${NC}"
+  date_divider "$PURPLE"
 }
 
 # init empty variables so we can set them with our namerefs below
@@ -287,18 +298,20 @@ fi
 
 if $RESUME && [[ -s "$RAW_MD5" && -s "$RAW_DIGEST" && -s "$TARBALL" && -s "$TARBALL_MD5" && -s "$SUMMARY_MD5" ]]; then
     echo -e "${YELLOW}Resume mode: Found existing tarball and relevant hashes. skipping compression and all hashing.${NC}"
-    print_divider "$YELLOW"
+    date_divider "$PURPLE"
 else
   # hash the sequencing summary
+  date_divider "$PURPLE"
   echo -e "${YELLOW}Hashing sequencing summary:${NC} $SUMMARY"
   cd "$(dirname "$SUMMARY")"
   md5sum "$(basename "$SUMMARY")" > "/data/runs/$SUMMARY_MD5"
   cd - && echo -e "${GREEN}Sequencing Summary hash saved to: ${PWD}/${SUMMARY_MD5}${NC}"
-  print_divider "$YELLOW"
+  print_divider "$PURPLE"
   # hash 'n compress the reads
   compress_run "$RUN" "$READS_DIR" RAW_MD5 RAW_DIGEST TARBALL TARBALL_MD5
 fi
 
+print_divider "$YELLOW"
 # upload everything to the bucket.
 upload_to_bucket "$DEST_BUCKET_PATH" "$SUMMARY" "$SUMMARY_MD5"
 upload_to_bucket "$DEST_BUCKET_PATH" "$RAW_MD5" "$RAW_DIGEST"
@@ -309,4 +322,5 @@ generate_input_tsv "$RUN" "$DEST_BUCKET_PATH" "$RAW_DIGEST" "$RAW_MD5" "$TARBALL
 
 echo -e "${GREEN}Finished! Have a wonderful day!${NC}"
 print_divider "$GREEN"
+
 exit 0

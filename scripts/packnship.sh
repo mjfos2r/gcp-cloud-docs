@@ -306,7 +306,6 @@ else
   cd "$(dirname "$SUMMARY")"
   md5sum "$(basename "$SUMMARY")" > "/data/runs/$SUMMARY_MD5"
   cd - && echo -e "${GREEN}Sequencing Summary hash saved to: ${PWD}/${SUMMARY_MD5}${NC}"
-  print_divider "$PURPLE"
   # hash 'n compress the reads
   compress_run "$RUN" "$READS_DIR" RAW_MD5 RAW_DIGEST TARBALL TARBALL_MD5
 fi
